@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-const ErrorResponse = require('../utils/errorResponse');
+const ErrorResponse = require('../helpers/errorResponse');
 
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
