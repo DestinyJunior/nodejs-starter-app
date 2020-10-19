@@ -9,6 +9,13 @@ const {
   deleteUser
 } = require('../../../app/controllers/userController');
 
+const { protect, authorize } = require('../../../app/middlewares/auth');
+
+// protect all routes here
+router.use(protect);
+router.use(authorize('admin'));
+
+
 router.post('/', createUser);
 
 router.get('/', getUsers);
