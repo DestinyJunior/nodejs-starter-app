@@ -2,9 +2,9 @@ const env = require('dotenv');
 
 const path = require('path');
 const express = require('express');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const dbErrorHandler = require('./app/middlewares/dbErrorHandler');
+const ErrorHandler = require('./app/middlewares/ErrorHandler');
 const DB = require('./configs/database');
 const cookieParser = require('cookie-parser');
 
@@ -31,18 +31,6 @@ const app = express();
 // body requests parser
 app.use(express.json());
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-// app.use(function (req, res, next) {
-//   //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-//   res.header('Access-Control-Allow-Headers', 'Content-Type');
-//   next();
-// });
-
-
 // cookie parser
 app.use(cookieParser());
 
@@ -55,8 +43,6 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// middleware error handler
-app.use(dbErrorHandler);
 
 // app.use(logger);
 
@@ -84,14 +70,12 @@ app.use(cors());
 
 
 
-
-
 // initialize routers
 app.use('/api/', apiRoutes);
 // app.use('/', webRoutes);
 
 // Handle 404 Requests
-app.use((req, res, next) => {
+app.use('*', (req, res, next) => {
   const error = new Error('Route Not found');
   error.status = 404;
   next(error);
@@ -101,7 +85,9 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// set static storage folder
+// error handler
+app.use(ErrorHandler);
 
+// set static storage folder
 
 module.exports = app;

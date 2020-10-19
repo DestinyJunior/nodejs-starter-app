@@ -27,10 +27,16 @@ const errorHandler = (err, req, res, next) => {
     error = new ErrorResponse(message, 400);
   }
 
+  if (error.message === 'Route Not found') {
+    const message = 'Requested resource not found';
+    error = new ErrorResponse(message, 404);
+  }
+
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || 'Server Error'
   });
+
 };
 
 module.exports = errorHandler;
