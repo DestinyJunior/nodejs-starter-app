@@ -7,11 +7,11 @@ const jwt = require('jsonwebtoken');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a name']
+    required: [true, 'Fullname is required']
   },
   email: {
     type: String,
-    required: [true, 'Please add an email'],
+    required: [true, 'Email address is  required'],
     unique: true,
     match: [
       // eslint-disable-next-line no-useless-escape
@@ -19,9 +19,13 @@ const UserSchema = new mongoose.Schema({
       'Please add a valid email'
     ]
   },
+  phone: {
+    type: Number,
+    required: [true, 'Phone is required']
+  },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin', 'manager'],
     default: 'user'
   },
   password: {
@@ -32,6 +36,13 @@ const UserSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  lastSeen: {
+    type: Date
+  },
+  isLoggedIn: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now()

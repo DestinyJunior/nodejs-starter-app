@@ -12,15 +12,15 @@ const {
 
 const router = express.Router();
 
-const { protect } = require('../../../app/middlewares/auth');
+const { protect, authorize} = require('../../../app/middlewares/auth');
 
 router.post('/register', register);
 
 router.post('/login', login);
 
-router.get('/logout', logout);
+router.get('/logout', protect, authorize('user', 'admin'), logout);
 
-router.get('/profile', protect, getAuthUser);
+router.get('/profile', protect, authorize('user', 'admin'), getAuthUser);
 
 router.put('/update-details', protect, updateDetails);
 
