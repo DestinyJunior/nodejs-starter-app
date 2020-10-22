@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
-const User = require('./User');
+// const User = require('./User');
 
 const TransactionSchema = new mongoose.Schema({
   user: {
-    type: User,
+    type: String,
     required: [true, 'User is required']
   },
   reference: {

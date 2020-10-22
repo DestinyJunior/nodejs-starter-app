@@ -8,7 +8,7 @@ const NotificationSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String,
-    required: [true, 'Image url is required']
+    required: [true, 'Image is required']
   },
   createdAt: {
     type: Date,
