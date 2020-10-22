@@ -71,7 +71,7 @@ app.use(cors());
 
 
 // initialize routers
-app.use('/api/', apiRoutes);
+app.use('/api/v1/', apiRoutes);
 // app.use('/', webRoutes);
 
 // Handle 404 Requests

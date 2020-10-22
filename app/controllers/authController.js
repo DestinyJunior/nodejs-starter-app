@@ -11,6 +11,7 @@ const User = require('../models/User');
 exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone, role } = req.body;
 
+  let cleanUser;
   // register user
   const user = await User.create({
     name,
@@ -19,8 +20,13 @@ exports.register = asyncHandler(async (req, res, next) => {
     phone,
     role
   });
+  
+  if (user) {
+    cleanUser = await User.findOne({ email });
+  }
 
-  sendTokenResponse(user, 200, res);
+
+  sendTokenResponse(cleanUser, 200, res);
 });
 
 // @desc      Login user
@@ -28,24 +34,26 @@ exports.register = asyncHandler(async (req, res, next) => {
 // @access    Public
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-
+  let user;
   // Validate emil & password
   if (!email || !password) {
     return next(new ErrorResponse('Please provide an email and password', 400));
   }
 
   // Check for user
-  const user = await User.findOne({ email }).select('+password');
+  const userCheck = await User.findOne({ email }).select('+password');
 
-  if (!user) {
+  if (!userCheck) {
     return next(new ErrorResponse('Invalid credentials', 401));
   }
 
   // Check if password matches
-  const isMatch = await user.matchPassword(password);
+  const isMatch = await userCheck.matchPassword(password);
 
   if (!isMatch) {
     return next(new ErrorResponse('Invalid credentials', 401));
+  } else {
+    user = await User.findOne({ email });
   }
 
   sendTokenResponse(user, 200, res);
@@ -213,6 +221,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     .cookie('token', token, options)
     .json({
       success: true,
+      data: user,
       token
     });
 };
