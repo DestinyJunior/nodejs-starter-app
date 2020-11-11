@@ -241,7 +241,7 @@ exports.getEmailVerificationToken = asyncHandler(async (req, res, next) => {
   await token.save();
 
   const message = `Verify your email using the following link \n 
-                    https://airtimeflip-cc149.web.app/verify-email/${newToken}`;
+                     ${process.env.FRONTEND_URL}/verify-email/${newToken}`;
 
   await sendEmail({
     email: user.email,
