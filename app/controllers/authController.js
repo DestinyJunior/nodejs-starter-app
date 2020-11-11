@@ -3,6 +3,10 @@ const ErrorResponse = require('../helpers/errorResponse');
 const asyncHandler = require('../middlewares/async');
 const sendEmail = require('../../configs/mailer');
 const User = require('../models/User');
+const VerificationToken = require('../models/EmailVerificationToken');
+
+
+
 
 // @desc      Register user
 // @route     POST /api/auth/register
@@ -12,6 +16,7 @@ exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone, role } = req.body;
 
   let cleanUser;
+  let token;
   // register user
   const user = await User.create({
     name,
@@ -20,13 +25,32 @@ exports.register = asyncHandler(async (req, res, next) => {
     phone,
     role
   });
+
+  token = await VerificationToken.create({ user: user._id });    
   
-  if (user) {
-    cleanUser = await User.findOne({ email });
-  }
+  
+
+  // get verification token for email
+  const finalToken = await token.getVerificationToken();
+
+  await token.save();
+
+ 
+  const message = `Welcome to Airtime Flip. Verify your email using the following link \n 
+                    https://airtimeflip-cc149.web.app/verify-email/${finalToken}`;
 
 
-  sendTokenResponse(cleanUser, 200, res);
+  await sendEmail({
+    email: user.email,
+    subject: 'Welcome to Airtime Flip',
+    message
+  });
+
+  // clean user document
+  cleanUser = await User.findOne({ email });
+
+
+  sendTokenResponse(cleanUser, 200, res, false);
 });
 
 // @desc      Login user
@@ -56,7 +80,7 @@ exports.login = asyncHandler(async (req, res, next) => {
     user = await User.findOne({ email });
   }
 
-  sendTokenResponse(user, 200, res);
+  sendTokenResponse(user, 200, res, true);
 });
 
 // @desc      Log user out / clear cookie
@@ -123,7 +147,7 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
   user.password = req.body.newPassword;
   await user.save();
 
-  sendTokenResponse(user, 200, res);
+  sendTokenResponse(user, 200, res, false);
 });
 
 // @desc      Forgot password
@@ -197,31 +221,116 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   user.resetPasswordExpire = undefined;
   await user.save();
 
-  sendTokenResponse(user, 200, res);
+  sendTokenResponse(user, 200, res, false);
+});
+
+// @desc      Get Verification Token
+// @route     PUT /api/auth/verify-email/:token
+// @access    Protect
+exports.getEmailVerificationToken = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  if (user.verified) {
+    return next(new ErrorResponse('User verified already', 400));
+  }
+
+  const token = await VerificationToken.findOne({ user: user._id });
+
+  const newToken = token.getVerificationToken();
+  
+  await token.save();
+
+  const message = `Verify your email using the following link \n 
+                    https://airtimeflip-cc149.web.app/verify-email/${newToken}`;
+
+  await sendEmail({
+    email: user.email,
+    subject: 'Email Confirmation, AirtimeFlip',
+    message
+  });
+
+
+  const msg = 'Email verification sent, check your email inbox.';
+
+  sendTokenResponse(msg, 200, res, false);
+});
+
+
+
+// @desc      Verify Email
+// @route     PUT /api/auth/verify-email/:token
+// @access    Public
+exports.verifyEmail = asyncHandler(async (req, res, next) => {
+  // console.log(req.params.token);
+  const emailToken = req.params.token;
+
+  // Get hashed token
+  const verificationToken = crypto
+    .createHash('sha256')
+    .update(emailToken)
+    .digest('hex');
+
+  const token = await VerificationToken.findOne({
+    token: verificationToken,
+    expires: { $gt: Date.now() }
+  });
+
+
+  if (!token) {
+    return next(new ErrorResponse('Invalid token', 400));
+  }
+
+  // update user verification status
+  const user = await User.findById(token.user);
+
+  user.verified = true;
+
+  await user.save();
+
+  // remove token from document
+  token.token = undefined;
+  token.expires = undefined;
+
+  await token.save();
+
+  const message = 'Email verification is successful';
+
+  sendTokenResponse(message, 200, res, false);
 });
 
 // Get token from model, create cookie and send response
-const sendTokenResponse = (user, statusCode, res) => {
+const sendTokenResponse = (user, statusCode, res, istoken) => {
   // Create token
-  const token = user.getSignedJwtToken();
+  if (istoken) {
+    const token = user.getSignedJwtToken();
 
-  const options = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true
-  };
+    const options = {
+      expires: new Date(
+        Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true
+    };
 
-  if (process.env.NODE_ENV === 'production') {
-    options.secure = true;
+    if (process.env.NODE_ENV === 'production') {
+      options.secure = true;
+    }
+
+    res
+      .status(statusCode)
+      .cookie('token', token, options)
+      .json({
+        success: true,
+        data: user,
+        token
+      });
+  } else {
+    // send data only
+    res
+      .status(statusCode)
+      .json({
+        success: true,
+        data: user,
+      });
   }
-
-  res
-    .status(statusCode)
-    .cookie('token', token, options)
-    .json({
-      success: true,
-      data: user,
-      token
-    });
+ 
 };
