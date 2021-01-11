@@ -1,7 +1,6 @@
-// const https = require('http');
-const app = require('./app');
+import app from "./app.js";
 // eslint-disable-next-line no-unused-vars
-const colors = require('colors');
+import colors from "colors"
 
 
 

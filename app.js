@@ -1,25 +1,24 @@
-const env = require('dotenv');
+import { config } from 'dotenv';
+import path from 'path'
 
-const path = require('path');
-const express = require('express');
+import express, { json } from 'express';
 // const bodyParser = require('body-parser');
-const morgan = require('morgan');
-const ErrorHandler = require('./app/middlewares/ErrorHandler');
-const DB = require('./configs/database');
-const cookieParser = require('cookie-parser');
+import morgan from 'morgan';
+import ErrorHandler from './app/middlewares/ErrorHandler.js';
+import DB from './configs/database.js';
+import cookieParser from 'cookie-parser';
 
 // securing api packages
-const mongoSanitize = require('express-mongo-sanitize');
-const helmet = require('helmet');
-const xss = require('xss-clean');
-const rateLimit = require('express-rate-limit');
-const hpp = require('hpp');
-const cors = require('cors');
-
+import mongoSanitize from 'express-mongo-sanitize';
+import helmet from 'helmet';
+import xss from 'xss-clean';
+import rateLimit from 'express-rate-limit';
+import hpp from 'hpp';
+import cors from 'cors';
 
   
 // Load Environment 
-env.config({ path: './.env' });
+config({ path: './.env' });
 
 
 // connect to database
@@ -35,7 +34,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // import routes files
-const apiRoutes = require('./routes/api/index');
+import apiRoutes  from './routes/api/index.js'
 // const webRoutes = require('./routes/web/index');
 
 //development mode middle ware logger
@@ -82,7 +81,7 @@ app.use('*', (req, res, next) => {
 });
 
 
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
 
 
 // error handler
@@ -90,4 +89,4 @@ app.use(ErrorHandler);
 
 // set static storage folder
 
-module.exports = app;
+export default app;

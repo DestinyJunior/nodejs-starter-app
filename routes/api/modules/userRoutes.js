@@ -1,15 +1,16 @@
-// const mongoose = require('mongoose');
-const router = require('express').Router();
-// const User = mongoose.model('User');
-const {
+import express from "express";
+const router = express.Router();
+
+
+import {
   getUsers,
   getUser,
   createUser,
   updateUser,
   deleteUser
-} = require('../../../app/controllers/userController');
+} from '../../../app/controllers/userController.js';
 
-const { protect, authorize } = require('../../../app/middlewares/auth');
+import { protect, authorize } from '../../../app/middlewares/auth.js'
 
 // protect all routes here
 router.use(protect);
@@ -27,4 +28,4 @@ router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
 
 
-module.exports = router;
+export default router

@@ -1,10 +1,12 @@
-const jwt = require('jsonwebtoken');
-const asyncHandler = require('./async');
-const ErrorResponse = require('../helpers/errorResponse');
-const User = require('../models/User');
+import pkg from 'jsonwebtoken';
+const { verify } = pkg;
 
-// Protect routes
-exports.protect = asyncHandler(async (req, res, next) => {
+// import { verify } from 'jsonwebtoken';
+import asyncHandler from './async.js';
+import ErrorResponse from '../helpers/errorResponse.js';
+import User from '../models/User.js';
+
+export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
   if (
@@ -27,19 +29,18 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
   try {
     // verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  
-    // append user details to req
+    const decoded = verify(token, process.env.JWT_SECRET);
+
     req.user = await User.findById(decoded.id);
 
     next();
   } catch (err) {
-    return next(new ErrorResponse('Token Expired', 401));
+    return next(new ErrorResponse('Not authorized to access this route', 401));
   }
 });
 
 // grant access to specific roles ( admin , users)
-exports.authorize = (...roles) => {
+export function authorize(...roles) {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
@@ -51,4 +52,4 @@ exports.authorize = (...roles) => {
     }
     next();
   };
-};
+}

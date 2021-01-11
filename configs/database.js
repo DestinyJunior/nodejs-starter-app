@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-
+import mongoose from "mongoose";
 
 // database connection
 
@@ -8,10 +7,10 @@ const DB = async () => {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   });
 
   console.log(`MongoDB Connected: ${conn.connection.host}`.cyan.underline.bold);
 };
 
-module.exports = DB;
+export default DB;

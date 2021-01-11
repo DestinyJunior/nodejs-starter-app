@@ -1,6 +1,7 @@
 {
   "name": "nodejs-starter-kit",
-  "version": "1.0.0",
+  "version": "1.0.2",
+  "type": "module",
   "description": "nodejs starter kit for quickly scalfolding nodejs app",
   "main": "server.js",
   "scripts": {
